@@ -5,7 +5,7 @@ using SparseArrays
 using Printf
 using DelimitedFiles
 using PyCall
-
+using TickTock
 export MDP, Policy, policy!, value_iteration, get_belief, dimensions, RectangleGrid, __init__
 
 function __init__()
@@ -120,7 +120,7 @@ end
 
 
 const VTOL = 1e-6
-const MAXITER = 200
+const MAXITER = 10 #200
 const GAMMA = 0.95
 const SAVELOC = "../data/qvalue.csv"
 
@@ -180,7 +180,7 @@ function value_iteration(mdp::MDP, save::Bool=false, saveloc::String=SAVE_LOC, v
     println("Starting value iteration...")
     iter = 0
     for iter = 1:MAXITER
-        tic()
+        tick()
         residual = 0.0
         prob = 0.2
         mask = py"generate_mask"(prob)
@@ -205,7 +205,7 @@ function value_iteration(mdp::MDP, save::Bool=false, saveloc::String=SAVE_LOC, v
         
         V = [maximum(Q[istate, :]) for istate = 1:nstate]
         
-        iter_time = toc()
+        iter_time = tok()
         cputime += iter_time
         residual /= (nstate * naction * prob)
         
@@ -221,6 +221,7 @@ function value_iteration(mdp::MDP, save::Bool=false, saveloc::String=SAVE_LOC, v
         if iter == MAXITER
             println("Maximum number of iterations reached!")
         end
+        print(iter)
     end
     @printf("Value iteration took %d iterations and %.2e sec\n", iter, cputime)
 
